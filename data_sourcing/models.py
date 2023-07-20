@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, HttpUrl, validator
 import re
 import wikipediaapi
+from .utils import USER_AGENT
 
 
 class NameGender(Enum):
@@ -39,6 +40,7 @@ class Religion(Enum):
 
 class FamousPerson(BaseModel):
     name: str = Field(..., description="The name of the famous person")
+    first_name: str = Field(..., description="The first name of the famous person")
     description: Optional[str] = Field(None, description="A short description of the famous person")
     wikipedia_link: HttpUrl = Field(..., description="The link to the famous person's Wikipedia page")
 
@@ -51,7 +53,8 @@ class FamousPerson(BaseModel):
     @validator('wikipedia_link')
     def link_must_work(cls, field):
         pattern = r"\/([^\/]+)$"
-        wiki_wiki = wikipediaapi.Wikipedia('en')
+        # https://meta.wikimedia.org/wiki/User-Agent_policy
+        wiki_wiki = wikipediaapi.Wikipedia(USER_AGENT,'en')
 
         match = re.search(pattern, field)
         if match:
@@ -98,7 +101,7 @@ class BabyName(BaseModel):
 
     @validator('boy_rank', 'girl_rank')
     def rank_must_be_non_negative(cls, field):
-        if field is not None and field < 0:
+        if field is not None and field < -1:
             raise ValueError("Rank cannot be negative!")
         return field
 

@@ -12,16 +12,11 @@ import wikipediaapi
 from langchain.prompts import PromptTemplate, ChatPromptTemplate, HumanMessagePromptTemplate
 from langchain.output_parsers import RetryWithErrorOutputParser
 from enum import Enum
-from typing import List, Optional
+from typing import List
 from copy import deepcopy
+from .utils import USER_AGENT
 
 chat = ChatOpenAI(temperature=0, model='gpt-3.5-turbo')
-
-
-def get_name_details(name):
-    baby_name = get_basic_details(name)
-    full_details = get_name_description(name)
-    famous_people = get_famous_people(name)
 
 
 def get_famous_people(name):
@@ -30,11 +25,13 @@ def get_famous_people(name):
     output_format = parser.get_format_instructions()
     example = """[{
     "name": "George Orwell",
+    "first_name": "George",
     "description": "George Orwell was an English novelist, essayist, journalist, and critic. His work is characterized by lucid prose, biting social criticism, opposition to totalitarianism, and outspoken support of democratic socialism.",
     "wikipedia_link": "https://en.wikipedia.org/wiki/George_Orwell"
     },
     {
     "name": "George R.R. Martin",
+    "first_name": "George",    
     "description": "George R.R. Martin is an American novelist and screenwriter. He is best known for his series of epic fantasy novels, A Song of Ice and Fire, which was adapted into the HBO series Game of Thrones.",
     "wikipedia_link": "https://en.wikipedia.org/wiki/}
     ]
@@ -42,6 +39,7 @@ def get_famous_people(name):
     output_format = """
     JSON
     {'name': 'Persons Name',
+    "first_name": "First Name Only",
     'description': '1 Sentence brief description',
     'wikipedia_link': 'URL for English Wikipedia for the person.'
     }
@@ -70,8 +68,9 @@ def get_famous_people(name):
         return out
     return l
 
+
 def get_name_description(name):
-    wiki_wiki = wikipediaapi.Wikipedia('en')
+    wiki_wiki = wikipediaapi.Wikipedia(USER_AGENT, 'en')
     page_py = wiki_wiki.page(f'{name} (name)') # TODO include other forms of this
 
     content = page_py.text.split('\n\n')[0]
@@ -83,7 +82,9 @@ def get_name_description(name):
 
     messages = [
         SystemMessage(content=f"""You are a helpful assistant that summarizes and enriches Wikipedia content for helping choose baby names. Take the wikiepdia description for this name {name}
-        and enrich it to give a good description for parents who may want to name their child
+        and enrich it to give a good description for parents who may want to name their child.
+        
+        Include origins, meaning, popular culture examples, attributes embodied by the name.
                       """),
         HumanMessage(content=f"Give a helpful summary for parents of the name `Matthew`"),
         AIMessage(content="""
@@ -106,8 +107,6 @@ def get_name_description(name):
     return out.content
 
 
-
-
 def get_string_form(o):
     if isinstance(o, Enum):
         return o.value
@@ -115,7 +114,9 @@ def get_string_form(o):
         return [i.value for i in o]
     else:
         return o
-def get_instructions(schema, examples, name_list_str):
+
+
+def get_instructions_bulk(schema, examples, name_list_str):
     schema_str = []
     keep_list = set()
     for k, v in deepcopy(schema.schema().get('properties')).items():
@@ -127,8 +128,6 @@ def get_instructions(schema, examples, name_list_str):
             if v.get('items'):
                 v.pop('items')
             schema_str.append(v)
-
-
 
     sys_message = f"""
     You are a helpful and knowledgeable baby naming consultant.
@@ -165,13 +164,16 @@ def get_instructions(schema, examples, name_list_str):
 def get_basic_details(name):
     description = get_name_description(name)
 
-    query = f"Generate the requested meta-data associated with the baby name Background:."
+    query = f"Generate the requested meta-data associated with the baby name"
 
     parser = PydanticOutputParser(pydantic_object=BabyName)
 
     prompt = PromptTemplate(
         template="""Fill out the required information for the desired baby name.
-         Use common knowledge to fill out as many fields as possible.\n{format_instructions}\n{query}\n Examples""",
+         Use common knowledge to fill out as many fields as possible.
+         {format_instructions}
+         {query}
+         Examples""",
         input_variables=["query"],
         partial_variables={
             "format_instructions": parser.get_format_instructions(),
@@ -188,7 +190,7 @@ def get_basic_details(name):
             val = get_string_form(getattr(baby_name, k))
             if val is not None:
                 json_data[k] = val
-        json_data =json.dumps(json_data)
+        json_data = json.dumps(json_data)
 
         example_messages.append(HumanMessage(content=baby_name.name))
         example_messages.append(SystemMessage(content=json_data))
@@ -202,11 +204,8 @@ def get_basic_details(name):
     out_json = json.loads(out.content)
     out_json['description'] = description
 
-    return out_json
-
     parser = PydanticOutputParser(pydantic_object=BabyName)
     retry_parser = RetryWithErrorOutputParser.from_llm(
         parser=parser, llm=ChatOpenAI()
     )
-
     return retry_parser.parse_with_prompt(json.dumps(out_json), _input)

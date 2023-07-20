@@ -1,0 +1,15 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}
+    <title>Top Baby Names - BabyNamer.AI</title>
+{% endblock %}
+
+{% block content %}
+<h1> hello world</h1>
+{% for stat in data %}
+    {% for k,v in stat %}
+    <p>{{ k }} : {{ v }}</p>
+    {% endfor %}
+{% endfor %}
+{% endblock %}
+```

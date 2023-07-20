@@ -1,48 +1,86 @@
 import pandas as pd
-from app.models import NameRank, NameStateRank, BabyName
-import tqdm
+from tqdm import tqdm
+from .models import NameRank, BabyName as BabyNameModel, FamousPerson as FamousPersonModel, NameStatePopularity
+from .utils import gender_guess, convert_gender, upload_data,\
+    prepare_names_data, prepare_state_data
+from data_sourcing.process_name import get_basic_details, get_famous_people
+BATCH_SIZE = 1000
 
-df_names = pd.read_csv('./data/names.csv')
-df_names_state = pd.read_csv('./data/states.csv')
-df_names_state.head()
+def import_names():
+    df_names = pd.read_csv('./data/names.csv')
+    df_names = prepare_names_data(df_names)
+    upload_data(df_names, NameRank, ['name', 'gender', 'year', 'rank', 'count'], ['name', 'gender', 'year'])
 
-df_names['rank'] = df_names.groupby(['Sex', 'Year'])[['Count']].rank(axis=0, ascending=False)
-df_names_state['rank'] = df_names_state.groupby(['Sex', 'Year', 'State'])[['Count']].rank(axis=0, ascending=False)
-
-df_names['rank'] = df_names['rank'].astype('int')
-df_names_state['rank'] = df_names_state['rank'].astype('int')
-df_names.rename(columns={'Sex': 'gender'}, inplace=True)
-df_names_state.rename(columns={'Sex': 'gender'}, inplace=True)
-
-df_names.columns = [i.lower() for i in df_names.columns]
-df_names_state.columns = [i.lower() for i in df_names_state.columns]
-current_year = df_names['year'].max()
-
-# Perform the aggregation
-df_agg = df_names[df_names.year==current_year].groupby(['gender', 'name'])['rank'].last().reset_index()
-
-# Pivot the DataFrame to get gender as separate columns
-pivot_df = df_agg.pivot(index='name', columns='gender', values='rank').reset_index()
-
-# Rename the columns to desired names
-pivot_df.columns = ['name', 'girl_rank', 'boy_rank']
-
-# Replace NaN values (which are produced when there is no rank for the most recent year) with null
-pivot_df[['girl_rank', 'boy_rank']] = pivot_df[['girl_rank', 'boy_rank']]
-
-
-df_tmp = pivot_df[['name','girl_rank', 'boy_rank']]
-df_tmp = df_tmp.where(pd.notna(df_tmp), -1)
-df_tmp['model']=df_tmp.apply(lambda x: BabyName(**x), axis=1)
-records = df_tmp.model.to_list()
-BabyName.objects.bulk_create(records)
-
-df_names = df_names[df_names.name.isin(df_tmp.name)].copy()
-df_names_state = df_names_state[df_names.name.isin(df_tmp.name)].copy()
-for df, model in (df_names, NameRank), (df_names_state, NameStateRank):
-    df['name']=df.name.apply(lambda x: BabyName.objects.get(name=x))
-    df['model'] = df.apply(lambda x: model(**x),axis=1)
-    records = df.model.to_list()
-    model.objects.bulk_create(records)
-
+def load_state_data():
+    df = pd.read_csv('./data/states.csv')
+    df = prepare_state_data(df)
+    upload_data(df, NameStatePopularity, ['state', 'name', 'relative_popularity'], ['state', 'name'])
 """
+def process_names(n=10):
+    n = int(n/2)  # split boys and girls
+    process_specific_names(n, 'boy_rank')
+    process_specific_names(n, 'girl_rank')
+
+def process_specific_names(n, rank_type):
+    names = BabyNameModel.objects.filter(**{'description__isnull':True, f"{rank_type}__gt":0}).order_by(rank_type)[0:n]
+    load_names(names)
+
+def load_names(unprocessed_names):
+    progress_bar = tqdm(unprocessed_names, unit='item')
+    for name in unprocessed_names:
+        progress_bar.set_postfix(name=name.name)
+
+        details = get_basic_details(name.name)
+        details = details.dict()
+
+        details['gender'] = details['gender'].value
+        details['religion'] = [i.value for i in details['ethnicity']]
+        details['ethnicity'] = [i.value for i in details['ethnicity']]
+        new_name = BabyNameModel(**details)
+        new_name.boy_rank = name.boy_rank
+        new_name.girl_rank = name.girl_rank
+        new_name.save()
+        famous_people = get_famous_people(name.name)
+        for person in famous_people:
+            try:
+                d = person.dict()
+                d['first_name'] = new_name
+                FamousPersonModel(**d).save()
+            except:
+                pass
+        progress_bar.update(1)
+
+    return None
+"""
+from concurrent.futures import ThreadPoolExecutor
+
+def process_names(n=10):
+    n = int(n/2)  # split boys and girls
+    process_specific_names(n, 'boy_rank')
+    process_specific_names(n, 'girl_rank')
+
+def process_specific_names(n, rank_type):
+    names = BabyNameModel.objects.filter(**{'description__isnull':True, f"{rank_type}__gt":0}).order_by(rank_type)[0:n]
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        executor.map(load_names, names)
+
+def load_names(name):
+    details = get_basic_details(name.name)
+    details = details.dict()
+
+    details['gender'] = details['gender'].value
+    details['religion'] = [i.value for i in details['ethnicity']]
+    details['ethnicity'] = [i.value for i in details['ethnicity']]
+    new_name = BabyNameModel(**details)
+    new_name.boy_rank = name.boy_rank
+    new_name.girl_rank = name.girl_rank
+    new_name.save()
+
+    famous_people = get_famous_people(name.name)
+    for person in famous_people:
+        try:
+            d = person.dict()
+            d['first_name'] = new_name
+            FamousPersonModel(**d).save()
+        except:
+            pass

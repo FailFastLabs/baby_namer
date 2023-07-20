@@ -6,6 +6,7 @@ class NameGender(models.TextChoices):
     FEMALE = 'Female'
     UNISEX = 'Unisex'
 
+
 class Ethnicity(models.TextChoices):
     AFRICAN = 'African'
     ASIAN = 'Asian'
@@ -17,6 +18,9 @@ class Ethnicity(models.TextChoices):
     TWO_OR_MORE_RACES = 'Two or More Races'
     OTHER = 'Other'
     UNKNOWN = 'Unknown'
+
+    def __str__(self):
+        return self.value
 
 class Religion(models.TextChoices):
     CHRISTIANITY = 'Christianity'
@@ -32,7 +36,7 @@ class Religion(models.TextChoices):
 
 class BabyName(models.Model):
     name = models.CharField(max_length=255, primary_key=True)
-    gender = models.CharField(max_length=10, choices=NameGender.choices)
+    gender = models.CharField(max_length=10,choices = NameGender.choices)
     description = models.TextField(null=True, blank=True)
     boy_rank = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(-2)])
     girl_rank = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(-2)])
@@ -41,22 +45,28 @@ class BabyName(models.Model):
     religion = models.CharField(max_length=50, choices=Religion.choices, null=True, blank=True)
     language = models.CharField(max_length=255, null=True, blank=True)
     region = models.CharField(max_length=255, null=True, blank=True)
+    sort_order = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(0)])
 
+    def __getattr__(self, name):
+        if name in ['gender', 'ethnicity', 'religion']:
+            value = self.__dict__[name]
+            if value is not None:
+                if name == 'gender':
+                    return NameGender(value)
+                elif name == 'ethnicity':
+                    return Ethnicity(value)
+                elif name == 'religion':
+                    return Religion(value)
+        return super().__getattr__(name)
 class FamousPerson(models.Model):
-    name = models.ForeignKey(
+    name = models.CharField(max_length=255)
+    first_name = models.ForeignKey(
         BabyName,
         on_delete=models.CASCADE
     )
     description = models.TextField(null=True, blank=True)
-    wikipedia_link = models.URLField(validators=[URLValidator()])
+    wikipedia_link = models.URLField(validators=[URLValidator()], primary_key=True)
 
-class BabyNameRef(BabyName):
-    famous_people_list = models.ManyToManyField(FamousPerson, related_name='baby_names', blank=True)
-
-class NameGender(models.TextChoices):
-    MALE = 'Male'
-    FEMALE = 'Female'
-    UNISEX = 'Unisex'
 
 class NameRank(models.Model):
     name = models.ForeignKey(
@@ -71,25 +81,22 @@ class NameRank(models.Model):
     class Meta:
         unique_together = ('name', 'gender', 'year')
 
-class NameStateRank(models.Model):
+
+class NameStatePopularity(models.Model):
     name = models.ForeignKey(
         BabyName,
         on_delete=models.CASCADE
     )
-    gender = models.CharField(max_length=10, choices=NameGender.choices)
     state = models.CharField(max_length=15)
-    year = models.IntegerField(validators=[MinValueValidator(0)])
-    count = models.IntegerField(validators=[MinValueValidator(0)])
-    rank = models.IntegerField(validators=[MinValueValidator(0)])
+    relative_popularity = models.FloatField()
 
     class Meta:
-        unique_together = ('name', 'gender', 'year', 'state')
+        unique_together = ('name', 'state')
 
-class NameGender(models.Model):
-    name = models.CharField(max_length=50, unique=True)
 
-class Ethnicity(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-
-class Religion(models.Model):
-    name = models.CharField(max_length=50, unique=True)
+class Embedding(models.Model):
+    name = models.ForeignKey(
+        BabyName,
+        on_delete=models.CASCADE
+    )
+    embedding = models.JSONField(null=True, blank=True)

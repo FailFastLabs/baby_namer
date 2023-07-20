@@ -1,8 +1,9 @@
 from copy import deepcopy
-from .utils import process_json_str, openai_call
+from .utils import process_json_str, openai_call, USER_AGENT
 import tiktoken
 import json
 import pandas as pd
+
 
 
 def get_bulk_name_instructions(schema, examples: list, names):

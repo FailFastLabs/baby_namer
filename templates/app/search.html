@@ -1,0 +1,24 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Top Baby Names - BabyNamer.AI</title>
+{% endblock %}
+
+{% block content %}
+<form method="get">
+    {{ form.as_p }}
+    <input type="submit" value="Search">
+</form>
+
+{% if names %}
+    <ul>
+        {% for name in names %}
+            <li><a href="/{{ name.name }}/">{{ name.name }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No names found.</p>
+{% endif %}
+{% endblock %}
+```

@@ -1,0 +1,78 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Top Baby Names - BabyNamer.AI</title>
+{% endblock %}
+
+{% block content %}
+  <table>
+  <tbody>
+    {% if gender == 'boys' %}
+      {% for name in page_obj %}
+      <tr>
+          <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title"><a href="/{{ name.name }}/">{{ name.name }}</a></></h5>
+                <p class="card-text"><b>{{ name.boy_rank }}</b> {{name.description|truncatechars:75 }}</p>
+            </div>
+          </div>
+      </tr>
+      {% endfor %}
+    {% elif gender == 'girls' %}
+      {% for name in page_obj %}
+      <tr>
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title"><a href="/{{ name.name }}/">{{ name.name }}</a></></h5>
+                <p class="card-text"><b>{{ name.girl_rank }}</b> {{name.description|truncatechars:75 }}</p>
+            </div>
+          </div>
+      </tr>
+      {% endfor %}
+    {% else %}
+      {% for boy_name, girl_name in page_obj %}
+      <tr>
+          <td>
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title"><a href="/{{ boy_name.name }}/">{{ boy_name.name }}</a></></h5>
+                <p class="card-text"><b>{{ boy_name.boy_rank }}</b> {{boy_name.description|truncatechars:75 }}</p>
+            </div>
+          </div>
+          </td>
+          <td>
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title"><a href="/{{ girl_name.name }}/">{{ girl_name.name }}</a></></h5>
+                <p class="card-text"><b>{{ girl_name.girl_rank }}</b> {{girl_name.description|truncatechars:75 }}</p>
+            </div>
+          </div>
+          </td>
+      </tr>
+      {% endfor %}
+    {% endif %}
+  </tbody>
+</table>
+
+<div class="pagination">
+    <div class="btn-group" role="group" aria-label="Item pagination">
+
+    <span class="step-links">
+
+        {% if page_obj.has_previous %}
+            <a href="?page=1"  class="btn btn-outline-primary">first</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline-primary">&raquo;</a>
+        {% endif %}
+    </span>
+        </div>
+</div>
+{% endblock %}

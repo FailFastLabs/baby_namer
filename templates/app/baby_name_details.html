@@ -1,84 +1,230 @@
+{% extends "app/base.html" %}
 {% load static %}
+{% load humanize %}
+{% block title %}
+    <title> {{ baby_name_data.name }} - BabyNamer.AI</title>
+{% endblock %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+{% block header %}
+{% endblock %}
 
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
 
-    <title>{{ baby_name_data.name }}</title>
-</head>
-<body>
-    <div class="container">
-        <h1>{{ baby_name_data.name }}</h1>
-        <table class="table">
-            <tbody>
-                <tr>
-                    <th>Gender</th>
-                    <td>{{ baby_name_data.gender }}</td>
-                </tr>
-                <tr>
-                    <th>Year</th>
-                    <td>{{ baby_name_data.year }}</td>
-                </tr>
-                <tr>
-                    <th>Count</th>
-                    <td>{{ baby_name_data.count }}</td>
-                </tr>
-                <tr>
-                    <th>Rank</th>
-                    <td>{{ baby_name_data.rank }}</td>
-                </tr>
-            </tbody>
-        </table>
-
-    </div>
-    <h2>Famous People</h2>
-
+{% block content %}
+    <h1>{{ baby_name_data.name }}</h1>
+        <!-- Check if user is a superuser, and if so, display link to admin page -->
+        {% if request.user.is_authenticated and request.user.is_superuser %}
+            <small>(ADMIN ONLY<a href="{% url 'admin:app_babyname_change' baby_name_data.name %}">Edit in Admin</a>)</small>
+        {% endif %}
     <table class="table">
-        <thead>
-            <tr>
-                <th>Description</th>
-                <th>Wikipedia Link</th>
-            </tr>
-        </thead>
         <tbody>
-            {% for person in famous_people %}
             <tr>
-                <td>{{ person.description }}</td>
-                <td><a href="{{ person.wikipedia_link }}">Wikipedia</a></td>
+                <th>Gender</th>
+                <td>{{ baby_name_data.gender }}</td>
             </tr>
-            {% endfor %}
+            {% if baby_name_data.gender in 'Male,Unisex' %}
+            <tr>
+                <th>Boy Rank</th>
+                <td><h3>{{ baby_name_data.boy_rank|linebreaks }}</h3></td>
+            </tr>
+            {% endif %}
+            {% if baby_name_data.gender in 'Female,Unisex' %}
+            <tr>
+                <th>Girl Rank</th>
+                <td><h3>{{ baby_name_data.girl_rank|linebreaks }}</h3></td>
+            </tr>
+            {% endif %}
+            {% if baby_name_data.description %}<tr>
+                <th>Description</th>
+                <td>{{ baby_name_data.description|linebreaks }}</td>
+            </tr>
+            {% endif %}
+            {% if baby_name_data.name_variants %}
+            <tr>
+                <th>Name Variants</th>
+                <td colspan="2">
+                    {% for variant in baby_name_data.name_variants %}
+                    <a href="{% url 'baby_name_detail' variant %}">{{ variant }}</a>
+                    {% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endif %}
+            {% if baby_name_data.ethnicity %}
+            <tr>
+                <th>Ethnicity</th>
+                <td colspan="2">{{ baby_name_data.get_ethnicity_display }}</td>
+            </tr>
+            {% endif %}
+            {% if baby_name_data.religion %}
+            <tr>
+                <th>Religion</th>
+                <td colspan="2">{{ baby_name_data.get_religion_display }}</td>
+            </tr>
+            {% endif %}
+            {% if baby_name_data.language %}
+            <tr>
+                <th>Language</th>
+                <td colspan="2">{{ baby_name_data.language }}</td>
+            </tr>
+            {% endif %}
+            {% if baby_name_data.region %}
+            <tr>
+                <th>Region</th>
+                <td colspan="2">{{ baby_name_data.region }}</td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
 
-        <h2>Famous People</h2>
 
-    <table class="table">
+    <div class="row">
+        <div class="col-6">
+            <div class="align-items-center">
+                <canvas id="time_series_chart"></canvas>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="align-items-center">
+                <div id="chloro" class="responsive-plot"></div>
+            </div>
+        </div>
+    </div>
+<!-- Ranking table section -->
+<!-- <table class="table">
         <thead>
+            <tr>
+                <th colspan="3">Rank</th>
+            </tr>
             <tr>
                 <th>Year</th>
-                <th>Rank</th>
+                {% if baby_name_data.gender == 'Male' or baby_name_data.gender == 'Unisex' %}
+                <th>Boy Rank</th>
+                {% endif %}
+                {% if baby_name_data.gender == 'Female' or baby_name_data.gender == 'Unisex' %}
+                <th>Girl Rank</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
-            {% for row in baby_name_usage_data %}
+            {% for row in baby_name_usage_data|slice:"-10:"  %}
             <tr>
                 <td>{{ row.year }}</td>
-                <td>{{ row.rank }}</td>
+                {% if row.rank_boy is not None %}
+                    <td>{{ row.rank_boy|intcomma }}</td>
+                {% endif %}
+                {% if row.rank_girl is not None %}
+                <td>{{ row.rank_girl|intcomma }}</td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    -->
 
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+
+
+<h2>Famous People</h2>
+<table class="table">
+    <thead>
+        <tr>
+        </tr>
+    </thead>
+    <tbody>
+        {% for person in famous_people %}
+        <tr>
+            <td>{{ person.description|safe }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Your data from the backend.
+var data = {{baby_name_usage_data|safe}};
+
+// Process the data into arrays.
+var years = data.map(function(item) {
+  return item.year;
+});
+var boysData = data.map(function(item) {
+  return item.count_boy || null;  // Return null if 'count_boy' is not present
+});
+var girlsData = data.map(function(item) {
+  return item.count_girl || null;  // Return null if 'count_girl' is not present
+});
+
+// Create the chart.
+var ctx = document.getElementById('time_series_chart').getContext('2d');
+var time_series_chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: years,
+    datasets: [{
+      label: 'Boys',
+      data: boysData,
+      backgroundColor: 'rgba(0, 0, 255, 0.1)',  // Blue background
+      borderColor: 'rgba(0, 0, 255, 1)',  // Blue border
+      borderWidth: 2
+    }, {
+      label: 'Girls',
+      data: girlsData,
+      backgroundColor: 'rgba(255, 105, 180, 0.1)',  // Pink background
+      borderColor: 'rgba(255, 105, 180, 1)',  // Pink border
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Year'
+        }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Annual Births'
+        }
+      }
+    }
+  }
+});
+</script>
+
+<script>
+var data = [{
+  type: 'choropleth',
+  locationmode: 'USA-states',
+  locations: {{states| safe}},
+  z: {{relative_popularity}},
+  autocolorscale: true,
+  reversescale: false,
+  marker: {
+    line: {
+      color: 'rgb(180,180,180)',
+      width: 0.5
+    },
+  },
+  colorbar: {
+    title: 'Relative Frequency',
+  },
+}];
+
+var layout = {
+  geo:{
+    scope: 'usa',
+    showlakes: true,
+    lakecolor: 'rgba(127,205,255)'
+  }
+};
+
+Plotly.newPlot('chloro', data, layout, {showLink: false});
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+databases:
+  - name: bbb_database
+    databaseName: bbb_server_db
+    user: bbb_server
+    region: ohio
+services:
+  - type: web
+    name: baby_namer_django
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn bbb_server.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bbb_database
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
+      - key: DJANGO_SETTINGS_MODULE
+        value: babynamer.settings
+      - key: DEBUG
+        value: False
+        previewValue: True
+    plan: starter
+    region: ohio

@@ -4,6 +4,9 @@ import ast
 from tenacity import retry, stop_after_attempt, wait_exponential
 import openai
 
+USER_AGENT = 'NameDetailsBot/0.0 (https://todo.ai/NameDetailsBot/'
+
+
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def openai_call(**kwargs):
     return openai.ChatCompletion.create(**kwargs)
