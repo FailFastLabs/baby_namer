@@ -11,5 +11,6 @@ urlpatterns = [
     path('bot.html', views.popular_names_view, name='bot'),
     path('search/', views.search, name='search'),
     path('stats/', views.stats, name='stats'),
+    path('favorites/', views.favorites_view, name='favorites'),
     path('<str:baby_name>/', views.baby_name_detail, name='baby_name_detail'),
 ]

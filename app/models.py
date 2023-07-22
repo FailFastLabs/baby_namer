@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, URLValidator
+from django.contrib.auth.models import User
 
 class NameGender(models.TextChoices):
     MALE = 'Male'
@@ -100,3 +101,16 @@ class Embedding(models.Model):
         on_delete=models.CASCADE
     )
     embedding = models.JSONField(null=True, blank=True)
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    baby_name = models.ForeignKey(BabyName, on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('user', 'baby_name',)
+
+class BabyTags(models.Model):
+    baby_name = models.ForeignKey(BabyName, on_delete=models.CASCADE)
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+    class Meta:
+        unique_together = ('baby_name', 'key', 'value', )

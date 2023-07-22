@@ -1,9 +1,8 @@
-import pandas as pd
+"""import pandas as pd
 import numpy as np
-from .models import BabyName, NameRank, NameGender, NameStatePopularity
+from .models import BabyName, NameRank, NameGender, NameStatePopularity, Favorite
 from .forms import PopularityChoices
-from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404
+
 
 BATCH_SIZE = 1000
 
@@ -158,14 +157,38 @@ def process_search_names(form, MAX_NAMES):
                 names = names.filter(boy_rank__gt=1000) | names.filter(girl_rank__gt=1000)
     return names.order_by('name')[0:MAX_NAMES]
 
+def __f(names):
+    return [[name] for name in names]
+
+def paginate_favorites(page_number, user, n):
+    names = Favorite.objects.filter(user=user).order_by('baby_name')
+    names = [name.baby_name for name in names]
+    names = __f(names)
+    paginator = Paginator(names, n)
+    print(names)
+    return paginator.get_page(page_number)
+
 def paginate_names(page_number, gender, n):
+
+
     if gender == 'boys':
-        names = BabyName.objects.filter(boy_rank__gt=0).order_by('boy_rank')
+        names = BabyName.objects.filter(boy_rank__gt=0).order_by('boy_rank') # TODO get rid of -1 rank
+        for name in names:
+            name.rank = name.boy_rank # TODO make unified min_rank for this
+        names = __f(names)
+
     elif gender == 'girls':
         names = BabyName.objects.filter(girl_rank__gt=0).order_by('girl_rank')
+        for name in names:
+            name.rank = name.girl_rank
+        names = __f(names)
     else:
         boy_names = BabyName.objects.filter(boy_rank__gt=0).order_by('boy_rank')
         girl_names = BabyName.objects.filter(girl_rank__gt=0).order_by('girl_rank')
+        for name in boy_names:
+            name.rank = name.boy_rank
+        for name in girl_names:
+            name.rank = name.girl_rank
         names = list(zip(boy_names, girl_names))
     paginator = Paginator(names, n)
     return paginator.get_page(page_number)
@@ -244,3 +267,5 @@ def upload_data(df, model, fields, unique):
         batch['model'] = batch.apply(lambda x: model(**x), axis=1)
         records = batch.model.to_list()
         model.objects.bulk_create(records, ignore_conflicts=False, update_conflicts=True, update_fields=fields,unique_fields=unique)
+
+"""

@@ -1,0 +1,24 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+
+    <h4>{% trans 'Remind a username' %}</h4>
+
+    <form method="post">
+
+        {% csrf_token %}
+        {% bootstrap_form form %}
+
+        <button class="btn btn-primary">{% trans 'Next' %}</button>
+
+    </form>
+
+    <hr>
+
+    <ul>
+        <li>
+            <a href="{% url 'accounts:login' %}">{% trans 'Log in' %}</a>
+        </li>
+    </ul>
+
+{% endblock %}

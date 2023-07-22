@@ -3,8 +3,9 @@ from scipy.spatial import distance
 from operator import itemgetter
 import json
 import requests
+import os
 from .models import BabyName as BabyNameModel, Embedding as EmbeddingModel
-hf_token = "" # TODO put this in .env file
+hf_token = os.environ.get("HF_TOKEN")
 model_id = "sentence-transformers/all-MiniLM-L6-v2"
 
 api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{model_id}"
