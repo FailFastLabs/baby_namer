@@ -15,6 +15,8 @@ from enum import Enum
 from typing import List
 from copy import deepcopy
 from .utils import USER_AGENT
+import requests
+from bs4 import BeautifulSoup
 
 chat = ChatOpenAI(temperature=0, model='gpt-3.5-turbo')
 
@@ -69,11 +71,36 @@ def get_famous_people(name):
     return l
 
 
-def get_name_description(name):
+def extract_content(url, content_class):
+    # Send a GET request to the URL
+    try:
+        response = requests.get(url,timeout=5)
+    except requests.exceptions.Timeout:
+        # In case of a timeout, return an empty string
+        return ""
+    # Parse the HTML content of the page with BeautifulSoup
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    # Find all elements with class "t-copy"
+    elements = soup.find_all(class_=content_class)
+
+    # Extract and return the text content of these elements
+    return '\n'.join([element.text for element in elements])
+
+def get_gt_data(name):
+    content = []
+    for url, c in [['https://nameberry.com/babyname/{name}','t-copy'],
+                       ['https://www.thebump.com/b/{name}-baby-name','contentBody']]:
+        url = url.format(name=name)
+        content.append(extract_content(url,c)[0:500])
     wiki_wiki = wikipediaapi.Wikipedia(USER_AGENT, 'en')
     page_py = wiki_wiki.page(f'{name} (name)') # TODO include other forms of this
 
-    content = page_py.text.split('\n\n')[0]
+    content.append(page_py.text.split('\n\n')[0])
+    return '\n'.join([c[0:500] for c in content])
+
+def get_name_description(name):
+    content = get_gt_data(name)
 
     def clean_text(text):
         import string

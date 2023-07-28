@@ -50,7 +50,7 @@ baby_name_mohamed = BabyName(
     name_variants=["Muhammed", "Muhamad", "Mohammad", "Mohammed", "Mohamad", "Mohamed"],
     ethnicity=[Ethnicity.MIDDLE_EASTERN],
     religion=[Religion.ISLAM],
-    language='Araibic',
+    language='Arabic',
     region='Middle East'
 )
 
@@ -63,5 +63,14 @@ baby_name_jing = BabyName(
     language='Chinese',
     region='China'
 )
+baby_name_maya = BabyName(
+    name="Maya",
+    gender = NameGender.FEMALE,
+    description="Female name with various origins in Greek, Hebrew, and Sanskrit",
+    ethnicity=[Ethnicity.ASIAN, Ethnicity.MIDDLE_EASTERN, Ethnicity.CAUCASIAN],
+    religion=[Religion.BUDDHISM, Religion.JAINISM],
+    language='Greek, Hebrew, and Sanskrit',
+    region='Various'
+)
 
-EXAMPLE_BABY_NAMES = [baby_name_jing, baby_name_john, baby_name_mary,baby_name_mohamed]
+EXAMPLE_BABY_NAMES = [baby_name_jing, baby_name_mary,baby_name_mohamed, baby_name_maya]

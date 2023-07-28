@@ -1,5 +1,5 @@
 import pandas as pd
-from .models import BabyName, NameRank, NameStatePopularity, NameGender
+from .models import NameGender
 import numpy as np
 def process_year_rank_data(baby_name_usage_data, baby_name_data):
     df = pd.DataFrame.from_records(baby_name_usage_data.values())
@@ -45,11 +45,11 @@ def gender_guess(x):
         return NameGender.FEMALE
     return NameGender.UNISEX
 def prepare_names_data(df_names):
-    df_names['Sex'] = df_names['Sex'].apply(lambda x: convert_gender(x))
-
-    df_names['rank'] = df_names.groupby(['Sex', 'Year'])[['Count']].rank(axis=0, ascending=False)
+    df_names = df_names.copy()
+    df_names['sex'] = df_names['sex'].apply(lambda x: convert_gender(x))
+    df_names['rank'] = df_names.groupby(['sex', 'year'])[['count']].rank(axis=0, ascending=False)
     df_names['rank'] = df_names['rank'].astype('int')
-    df_names.rename(columns={'Sex': 'gender'}, inplace=True)
+    df_names.rename(columns={'sex': 'gender'}, inplace=True)
 
     df_names.columns = [i.lower() for i in df_names.columns]
     current_year = df_names['year'].max()
@@ -60,7 +60,7 @@ def prepare_names_data(df_names):
     pivot_df.columns = ['name', 'girl_rank', 'boy_rank']
 
     df_tmp = pivot_df[['name', 'girl_rank', 'boy_rank']]
-    df_tmp = df_tmp.where(pd.notna(df_tmp), 1000000)
+    #df_tmp = df_tmp.where(pd.notna(df_tmp), 1000000)
 
     df_name_gender_guess = df_names.groupby(['name', 'gender']).agg({'count': 'sum'}).pivot_table(index='name', columns='gender').fillna(0)
     df_name_gender_guess.columns = ['Female', 'Male']
@@ -92,16 +92,15 @@ def make_tags_names():
 def prepare_state_data(df):
     # todo user mroe days back for less popular names
     # df.groupby(['Year','Name']).agg({'Count': 'sum'}).sort(['year']).cumulative('Count')
-    df = df[df.Year >= df.Year.max() - 5][['State', 'Name', 'Count']].copy()
-    df = df.groupby(['State', 'Name'])['Count'].sum().reset_index()
-    total_counts = df.groupby(['State'])['Count'].sum().reset_index()
-    total_counts.rename(columns={'Count': 'Total'}, inplace=True)
-    df = pd.merge(df, total_counts, on=['State'])
-    df['Frequency'] = df['Count'] / df['Total']
-    avg_of_avgs = df.groupby('Name')['Frequency'].mean().reset_index()
-    avg_of_avgs.rename(columns={'Frequency': 'Avg_of_Avgs'}, inplace=True)
+    df = df[df.Year >= df.Year.max() - 5][['state', 'name', 'count']].copy()
+    df = df.groupby(['state', 'name'])['count'].sum().reset_index()
+    total_counts = df.groupby(['state'])['count'].sum().reset_index()
+    total_counts.rename(columns={'count': 'total'}, inplace=True)
+    df = pd.merge(df, total_counts, on=['state'])
+    df['frequency'] = df['count'] / df['total']
+    avg_of_avgs = df.groupby('nName')['frequency'].mean().reset_index()
+    avg_of_avgs.rename(columns={'frequency': 'avg_of_avgs'}, inplace=True)
     df = pd.merge(df, avg_of_avgs, on='Name')
-    df['relative_popularity'] = df['Frequency'] / df['Avg_of_Avgs']
-    df = df.rename(columns={'Name': 'name', 'State': 'state'})
+    df['relative_popularity'] = df['frequency'] / df['avg_of_avgs']
 
     return df

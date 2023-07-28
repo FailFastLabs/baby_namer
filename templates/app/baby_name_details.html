@@ -2,7 +2,7 @@
 {% load static %}
 {% load humanize %}
 {% block title %}
-    <title> {{ baby_name_data.name }} - BabyNamer.AI</title>
+    <title> {{ name.name }} - BabyNamer.AI</title>
 {% endblock %}
 
 {% block header %}
@@ -10,67 +10,93 @@
 
 
 {% block content %}
-    <h1>{{ baby_name_data.name }}</h1>
+    <h1>{{ name.name }}
+        <span class="heart" id="{{ name.name }}">
+                    {% if name.name in favorites %}
+                        <i class="bi bi-heart-fill"></i>
+                    {% else %}
+                        <i class="bi bi-heart"></i>
+                    {% endif %}
+                </span>
+    </h1>
         <!-- Check if user is a superuser, and if so, display link to admin page -->
         {% if request.user.is_authenticated and request.user.is_superuser %}
-            <small>(ADMIN ONLY<a href="{% url 'admin:app_babyname_change' baby_name_data.name %}">Edit in Admin</a>)</small>
+            <small>(ADMIN ONLY<a href="{% url 'admin:app_babyname_change' name.name %}">Edit in Admin</a>)</small>
         {% endif %}
     <table class="table">
         <tbody>
             <tr>
                 <th>Gender</th>
-                <td>{{ baby_name_data.gender }}</td>
+                <td>{{ name.gender }}</td>
             </tr>
-            {% if baby_name_data.gender in 'Male,Unisex' %}
+            {% if name.gender in 'Male,Unisex' %}
             <tr>
                 <th>Boy Rank</th>
-                <td><h3>{{ baby_name_data.boy_rank|linebreaks }}</h3></td>
+                <td><h3>{{ name.boy_rank|linebreaks }}</h3></td>
             </tr>
             {% endif %}
-            {% if baby_name_data.gender in 'Female,Unisex' %}
+            {% if name.gender in 'Female,Unisex' %}
             <tr>
                 <th>Girl Rank</th>
-                <td><h3>{{ baby_name_data.girl_rank|linebreaks }}</h3></td>
+                <td><h3>{{ name.girl_rank|linebreaks }}</h3></td>
             </tr>
             {% endif %}
-            {% if baby_name_data.description %}<tr>
+            {% if name.description %}<tr>
                 <th>Description</th>
-                <td>{{ baby_name_data.description|linebreaks }}</td>
+                <td>{{ name.description|linebreaks }}</td>
             </tr>
             {% endif %}
-            {% if baby_name_data.name_variants %}
+            {% if name.name_variants %}
             <tr>
                 <th>Name Variants</th>
                 <td colspan="2">
-                    {% for variant in baby_name_data.name_variants %}
-                    <a href="{% url 'baby_name_detail' variant %}">{{ variant }}</a>
+                    {% for variant in name.name_variants %}
+                    <a href="{% url 'app:baby_name_detail' variant %}">{{ variant }}</a>
                     {% if not forloop.last %}, {% endif %}
                     {% endfor %}
                 </td>
             </tr>
             {% endif %}
-            {% if baby_name_data.ethnicity %}
+            {% if name.ethnicity %}
             <tr>
                 <th>Ethnicity</th>
-                <td colspan="2">{{ baby_name_data.get_ethnicity_display }}</td>
+                <td colspan="2">
+                    {% for variant in name.ethnicity %}
+                        <a href="{% url 'app:search' %}?ethnicity={{ variant }}">{{ variant }}</a>
+                        {% if not forloop.last %}, {% endif %}
+                    {% endfor %}</td>
             </tr>
             {% endif %}
-            {% if baby_name_data.religion %}
+            {% if name.religion %}
             <tr>
                 <th>Religion</th>
-                <td colspan="2">{{ baby_name_data.get_religion_display }}</td>
+                <td colspan="2">
+                            {% for variant in name.religion %}
+                        <a href="{% url 'app:search' %}?religion={{ variant }}">{{ variant }}</a>
+                        {% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                </td>
             </tr>
             {% endif %}
-            {% if baby_name_data.language %}
+            {% if name.language %}
             <tr>
                 <th>Language</th>
-                <td colspan="2">{{ baby_name_data.language }}</td>
+                <td colspan="2">
+                    {% for variant in name.language %}
+                        <a href="{% url 'app:search' %}?language={{ variant }}">{{ variant }}</a>
+                    {% if not forloop.last %}, {% endif %}
+                {% endfor %}
             </tr>
             {% endif %}
-            {% if baby_name_data.region %}
+            {% if name.region %}
             <tr>
                 <th>Region</th>
-                <td colspan="2">{{ baby_name_data.region }}</td>
+                <td colspan="2">
+                    {% for variant in name.region %}
+                        <a href="{% url 'app:search' %}?region={{ variant }}">{{ variant }}</a>
+                    {% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                </td>
             </tr>
             {% endif %}
         </tbody>
@@ -97,10 +123,10 @@
             </tr>
             <tr>
                 <th>Year</th>
-                {% if baby_name_data.gender == 'Male' or baby_name_data.gender == 'Unisex' %}
+                {% if name.gender == 'Male' or name.gender == 'Unisex' %}
                 <th>Boy Rank</th>
                 {% endif %}
-                {% if baby_name_data.gender == 'Female' or baby_name_data.gender == 'Unisex' %}
+                {% if name.gender == 'Female' or name.gender == 'Unisex' %}
                 <th>Girl Rank</th>
                 {% endif %}
             </tr>
@@ -124,7 +150,7 @@
 
 
 
-<h2>Famous People</h2>
+<h2>Famous {{ name.name }}{% if famous_people|length > 0 %}s{% endif %}</h2>
 <table class="table">
     <thead>
         <tr>

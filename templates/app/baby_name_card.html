@@ -1,0 +1,18 @@
+<div class="card" style="width: 18rem;">
+    <div class="card-body">
+        <h5 class="card-title">
+            {{name.rank}}:
+            <a href="{% url 'app:baby_name_detail' name.name %}">{{ name.name }}</a>
+            <span class="heart" id="{{ name.name }}">
+                {% if name.name in favorites %}
+                    <i class="bi bi-heart-fill"></i>
+                {% else %}
+                    <i class="bi bi-heart"></i>
+                {% endif %}
+            </span>
+        </h5>
+        <p class="card-text">
+          {{ name.description|truncatechars:75 }}
+        </p>
+    </div>
+  </div>

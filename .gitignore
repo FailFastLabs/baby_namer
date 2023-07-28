@@ -1,14 +1,19 @@
 .idea/
 .vscode/
+.ipynb_checkpoints
 
+venv/
 __pycache__/
-
-.DS_store
+content/tmp/
+git/objects/
+.DS_Store
 data/
 # ignore these extensions
 *.ipynb
 *.csv
 *.sqlite3
 *.pyc
-
-db.sqlite3
+*.txt
+*.TXT
+*.zip
+*.env

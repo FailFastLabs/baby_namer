@@ -76,7 +76,6 @@ class BabyName(BaseModel):
     description: Optional[str] = Field(None, description="A short description of the name")
     boy_rank: Optional[int] = Field(None, description="The popularity rank of the name for boys")
     girl_rank: Optional[int] = Field(None, description="The popularity rank of the name for girls")
-    # famous_people_list: Optional[List[FamousPerson]] = Field(None, description="A list of famous people who share this name")
     name_variants: Optional[List[str]] = Field(None,
                                                description="List of common spellings and related names",
                                                bulk=True)
@@ -104,6 +103,13 @@ class BabyName(BaseModel):
         if field is not None and field < -1:
             raise ValueError("Rank cannot be negative!")
         return field
+
+    @validator('ethnicity', 'religion')
+    def limit_length(cls, field):
+        if field is None:
+            return field
+        if len(field) > 5:
+            raise ValueError("List cannot be longer than 5")
 
     @validator('ethnicity')
     def ethnicity_match(cls, field):

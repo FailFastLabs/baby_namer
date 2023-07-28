@@ -61,6 +61,12 @@ def search(request):
     q = request.GET.get('q', '').capitalize()
     form = BabyNameForm(request.GET)
 
+    # attributes search
+    fields = ['gender', 'ethnicity', 'religion', 'language', 'region', 'popularity']
+    if any(field in request.GET for field in fields):
+        names = process_search_names(form, MAX_NAMES)
+        return render(request, 'app/search.html', {'form': form, 'names': names})
+
     try:  # Exact match
         baby = BabyName.objects.get(name=q)
         return redirect('baby_name_detail', baby_name=baby.name)
@@ -69,7 +75,7 @@ def search(request):
 
     # Near string match
     if len(q.split(' ')) == 1 and len(q) < 15:  # no spaces, likely a direct name search
-        names = BabyName.objects.filter(name__icontains=q)[:MAX_NAMES]
+        names = BabyName.objects.filter(name__icontains=q).order_by('sort_order')[:MAX_NAMES]
     else:
         names = None
 
@@ -79,6 +85,7 @@ def search(request):
         names = [name[0] for name in names]
 
     return render(request, 'app/search.html', {'form': form, 'names': names})
+
 
 def stats(request):
     from django.db.models import Count

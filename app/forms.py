@@ -1,27 +1,28 @@
 from django import forms
 from django.db import models
-
-from .models import BabyName, Ethnicity, Religion, NameGender
+from .models import BabyName, Ethnicity, Religion
 
 class PopularityChoices(models.TextChoices):
-    ALL = 'All'
+    ANY = 'Any'
     LOW = 'Low'
     MEDIUM = 'Medium'
     HIGH = 'High'
 
 class BabyNameForm(forms.ModelForm):
     popularity = forms.ChoiceField(choices=PopularityChoices.choices, required=False)
+    religion = forms.ChoiceField(choices=[('Any', 'Any')] + list(Religion.choices), required=False)
+    ethnicity = forms.ChoiceField(choices=[('Any', 'Any')] + list(Ethnicity.choices), required=False)
+    language = forms.CharField(max_length=255, required=False)
+    region = forms.CharField(max_length=255, required=False)
 
     class Meta:
         model = BabyName
         fields = ['name', 'gender', 'ethnicity', 'religion', 'language', 'region', 'popularity']
 
         widgets = {
-            'gender': forms.RadioSelect, # TODO default Unisex
+            'gender': forms.Select, # TODO default Unisex
             'ethnicity': forms.Select,
             'religion': forms.Select,
-            'language': forms.TextInput(attrs={'placeholder': 'e.g. English, Spanish, etc.'}),
-            'region': forms.TextInput(attrs={'placeholder': 'e.g. North America, Europe, etc.'})
         }
 
     def __init__(self, *args, **kwargs):

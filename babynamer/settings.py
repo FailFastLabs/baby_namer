@@ -9,12 +9,25 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+
+
 import os
 from pathlib import Path
+from django.utils.translation import gettext_lazy
+from os.path import dirname
+from dotenv import load_dotenv
+
+load_dotenv()
+# things we need:
+# OPENAI API
+# GMAIL API PASSWOR
+# BING API KEY
+# STRIPE DATA
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+CONTENT_DIR = os.path.join(BASE_DIR, 'content')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -48,8 +61,9 @@ INSTALLED_APPS = [
     'data_sourcing',
     'django.contrib.humanize',
     'django_extensions',
-    'users'
-    #'django_elasticsearch_dsl'
+    'accounts',
+    'bootstrap4',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -83,6 +97,14 @@ TEMPLATES = [
 ]
 
 # WSGI_APPLICATION = 'babynamer.wsgi.application'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
 
 
 # Database
@@ -126,6 +148,31 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
+
+ENABLE_USER_ACTIVATION = True
+DISABLE_USERNAME = True
+LOGIN_VIA_EMAIL = True
+LOGIN_VIA_EMAIL_OR_USERNAME = False
+LOGIN_REDIRECT_URL = 'index'
+LOGIN_URL = 'accounts:login'
+USE_REMEMBER_ME = True
+
+RESTORE_PASSWORD_VIA_EMAIL_OR_USERNAME = False
+ENABLE_ACTIVATION_AFTER_EMAIL_CHANGE = True
+
+SIGN_UP_FIELDS = ['username', 'first_name', 'last_name', 'email', 'password1']
+if DISABLE_USERNAME:
+    SIGN_UP_FIELDS = ['first_name', 'last_name', 'email', 'password1']
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+
+USE_I18N = True
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ('en', gettext_lazy('English')),
+    ('es', gettext_lazy('Spanish')),
+]
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -148,13 +195,20 @@ if not DEBUG:    # Tell Django to copy statics to the `staticfiles` directory
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 else:
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+MEDIA_ROOT = os.path.join(CONTENT_DIR, 'media')
+MEDIA_URL = '/media/'
+
+STATICFILES_DIRS = [
+    os.path.join(CONTENT_DIR, 'assets'),
+]
+
+LOCALE_PATHS = [
+    os.path.join(CONTENT_DIR, 'locale')
+]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-ELASTICSEARCH_DSL={
-    'default': {
-        'hosts': 'localhost:9200'
-    },
-}

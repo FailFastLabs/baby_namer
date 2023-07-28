@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, URLValidator
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
 class NameGender(models.TextChoices):
     MALE = 'Male'
@@ -35,18 +36,49 @@ class Religion(models.TextChoices):
     JAINISM = 'Jainism'
     SHINTO = 'Shinto'
 
+
+
+
 class BabyName(models.Model):
     name = models.CharField(max_length=255, primary_key=True)
-    gender = models.CharField(max_length=10,choices = NameGender.choices)
+    gender = models.CharField(max_length=10, choices=NameGender.choices)
     description = models.TextField(null=True, blank=True)
     boy_rank = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(-2)])
     girl_rank = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(-2)])
     name_variants = models.JSONField(null=True, blank=True)
-    ethnicity = models.CharField(max_length=50, choices=Ethnicity.choices, null=True, blank=True)
-    religion = models.CharField(max_length=50, choices=Religion.choices, null=True, blank=True)
-    language = models.CharField(max_length=255, null=True, blank=True)
-    region = models.CharField(max_length=255, null=True, blank=True)
+    ethnicity = models.JSONField(null=True, blank=True)
+    religion = models.JSONField(null=True, blank=True)
+    language = models.JSONField(null=True, blank=True)
+    region = models.JSONField(null=True, blank=True)
     sort_order = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(0)])
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    last_modified = models.DateTimeField(auto_now=True)
+    
+    """
+    def clean(self):
+        # Validate ethnicity
+        if self.ethnicity is not None:
+            tmp = self.ethnicity
+            if tmp is str:
+                tmp = [tmp]
+            for ethnicity in tmp:
+                if ethnicity not in [e.value for e in Ethnicity]:
+                    raise ValidationError({
+                        'ethnicity': ValidationError('Invalid ethnicity: %(ethnicity)s',
+                                                     params={'ethnicity': ethnicity}),
+                    })
+
+        # Validate religion
+        if self.religion is not None:
+            tmp = self.religion
+            if tmp is str:
+                tmp = [tmp]
+            for religion in self.religion:
+                if religion not in [r.value for r in Religion]:
+                    raise ValidationError({
+                        'religion': ValidationError('Invalid religion: %(religion)s', params={'religion': religion}),
+                    })
+    """                    
 
     def __getattr__(self, name):
         if name in ['gender', 'ethnicity', 'religion']:
@@ -59,6 +91,7 @@ class BabyName(models.Model):
                 elif name == 'religion':
                     return Religion(value)
         return super().__getattr__(name)
+
 class FamousPerson(models.Model):
     name = models.CharField(max_length=255)
     first_name = models.ForeignKey(

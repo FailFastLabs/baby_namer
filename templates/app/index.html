@@ -5,53 +5,19 @@
     <title>Top Baby Names - BabyNamer.AI</title>
 {% endblock %}
 
+
 {% block content %}
   <table>
   <tbody>
-    {% if gender == 'boys' %}
-      {% for name in page_obj %}
-      <tr>
-          <div class="card" style="width: 18rem;">
-            <div class="card-body">
-                <h5 class="card-title"><a href="/{{ name.name }}/">{{ name.name }}</a></></h5>
-                <p class="card-text"><b>{{ name.boy_rank }}</b> {{name.description|truncatechars:75 }}</p>
-            </div>
-          </div>
-      </tr>
+      {% for name_row in page_obj %}
+        <tr>
+            {% for name in name_row %}
+            <td>
+                {% include "app/baby_name_card.html" %}
+            </td>
+            {% endfor %}
+        </tr>
       {% endfor %}
-    {% elif gender == 'girls' %}
-      {% for name in page_obj %}
-      <tr>
-        <div class="card" style="width: 18rem;">
-            <div class="card-body">
-                <h5 class="card-title"><a href="/{{ name.name }}/">{{ name.name }}</a></></h5>
-                <p class="card-text"><b>{{ name.girl_rank }}</b> {{name.description|truncatechars:75 }}</p>
-            </div>
-          </div>
-      </tr>
-      {% endfor %}
-    {% else %}
-      {% for boy_name, girl_name in page_obj %}
-      <tr>
-          <td>
-        <div class="card" style="width: 18rem;">
-            <div class="card-body">
-                <h5 class="card-title"><a href="/{{ boy_name.name }}/">{{ boy_name.name }}</a></></h5>
-                <p class="card-text"><b>{{ boy_name.boy_rank }}</b> {{boy_name.description|truncatechars:75 }}</p>
-            </div>
-          </div>
-          </td>
-          <td>
-        <div class="card" style="width: 18rem;">
-            <div class="card-body">
-                <h5 class="card-title"><a href="/{{ girl_name.name }}/">{{ girl_name.name }}</a></></h5>
-                <p class="card-text"><b>{{ girl_name.girl_rank }}</b> {{girl_name.description|truncatechars:75 }}</p>
-            </div>
-          </div>
-          </td>
-      </tr>
-      {% endfor %}
-    {% endif %}
   </tbody>
 </table>
 
