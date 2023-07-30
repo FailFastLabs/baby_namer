@@ -51,16 +51,13 @@ def process_data():
 
     names_columns = ['name', 'sex', 'count']
     names_extra_columns = {
-        'year': lambda filename: int(*re.findall(r'(\d+)', filename)),
-        'rank': lambda _: None
+        'year': lambda filename: int(*re.findall(r'(\d+)', filename))
     }
     names = process_files('data/yob*.txt', names_columns, names_extra_columns)
     names.to_csv('data/names.csv', index=False)
 
     state_columns = ['state', 'sex', 'year', 'name', 'count']
-    state_extra_columns = {
-        'rank': lambda _: None
-    }
+    state_extra_columns = {}
     state_data = process_files('data/STATE.[A-Z][A-Z].*', state_columns, state_extra_columns)
-
     state_data.to_csv('data/stats.csv',index=False)
+    return names, state_data

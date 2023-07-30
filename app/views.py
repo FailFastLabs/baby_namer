@@ -1,17 +1,19 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from .forms import BabyNameForm
-#from .utils import process_baby_name_data, process_baby_name_usage_data, process_baby_name_state_data, process_year_rank_data, process_search_names, paginate_names, process_famous_people_data, paginate_favorites
-from .data_processing import *
-from .db_operations import *
+from .db_operations import process_baby_name_data, process_baby_name_usage_data, process_baby_name_state_data, process_famous_people_data, process_search_names, process_year_rank_data
 from .pagination import paginate_names, paginate_favorites
 from django.shortcuts import redirect
 from .embeddings import get_related_names
 from .models import BabyName, Favorite
+from django.views.decorators.cache import cache_page
+from .models import BabyTags
 MAX_NAMES = 20
 
 
+# @cache_page(60 * 60 * 24)
 def baby_name_detail(request, baby_name):
     baby_name_data = process_baby_name_data(baby_name)
+    tags = baby_name_data.get_tags()
     baby_name_usage_data = process_baby_name_usage_data(baby_name_data)
     states, relative_popularity = process_baby_name_state_data(baby_name_data)
     year_rank_data = process_year_rank_data(baby_name_usage_data, baby_name_data)
@@ -20,26 +22,44 @@ def baby_name_detail(request, baby_name):
         favorites = Favorite.objects.filter(user=request.user, baby_name=baby_name).values_list('baby_name_id', flat=True)
     else:
         favorites = []
+    print([(tag.key, tag.value) for tag in tags])
     return render(request, 'app/baby_name_details.html',
                   {'name': baby_name_data,
                    'baby_name_usage_data': year_rank_data,
                    'famous_people': famous_people,
                    'states': states,
                    'relative_popularity': relative_popularity,
-                   'favorites': favorites
+                   'favorites': favorites,
+                   'tags': tags
                    })
 
+def add_tags(name):
+    name['tags'] = name.get_tags()
+    return name
+
+#@cache_page(60 * 60 * 24)
 def popular_names_view(request, gender=None, n=20):
     page_number = request.GET.get('page', 1)
-    names = paginate_names(page_number, gender, n)
+    page_obj = paginate_names(page_number, gender, n)
+    names = []
+    names_unique = []
+    for row in page_obj:
+        tmp =[]
+        for name in row:
+            tmp.append(name)
+            names_unique.append(name)
+        names.append(tmp)
+    tags = BabyTags.objects.filter(baby_name__in=names_unique)
+    print(len(tags))
     if request.user.is_authenticated:
         favorites = Favorite.objects.filter(user=request.user).values_list('baby_name_id', flat=True)
         # TODO improve query by only considering names wihtin request above
     else:
         favorites = []
-    return render(request, 'app/index.html', {'page_obj': names, 'gender': gender, 'favorites': favorites})
+    return render(request, 'app/index.html', {'page_obj': page_obj, 'names':names, 'gender': gender, 'favorites': favorites})
 
 
+#@cache_page(60 * 60 * 24)
 def favorites_view(request, n=20):
     page_number = request.GET.get('page', 1)
 

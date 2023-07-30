@@ -23,23 +23,41 @@
         {% if request.user.is_authenticated and request.user.is_superuser %}
             <small>(ADMIN ONLY<a href="{% url 'admin:app_babyname_change' name.name %}">Edit in Admin</a>)</small>
         {% endif %}
+
+        {% for tag in tags %}
+        {% if tag.value != 'nan' %}
+            <span class="badge badge-pill badge-primary">
+                {% if tag.value == True %}
+                    {{ tag.key|title }}
+                {% else %}
+                    {{ tag.value|title }}
+                {% endif %}</span>
+        {% endif %}
+        {% endfor %}
     <table class="table">
         <tbody>
             <tr>
                 <th>Gender</th>
                 <td>{{ name.gender }}</td>
             </tr>
-            {% if name.gender in 'Male,Unisex' %}
-            <tr>
-                <th>Boy Rank</th>
-                <td><h3>{{ name.boy_rank|linebreaks }}</h3></td>
+            {% if name.boy_rank is None and name.girl_rank is None %}
+                <tr>
+                    <th>Unique Name</th>
+                    <td><h3>Not enough data for us to tell much about this name</h3></td>
             </tr>
-            {% endif %}
-            {% if name.gender in 'Female,Unisex' %}
-            <tr>
-                <th>Girl Rank</th>
-                <td><h3>{{ name.girl_rank|linebreaks }}</h3></td>
-            </tr>
+            {% else %}
+                {% if name.gender in 'Male,Unisex' %}
+                    <tr>
+                        <th>Boy Rank</th>
+                        <td><h3>{{ name.boy_rank|linebreaks }}</h3></td>
+                    </tr>
+                    {% endif %}
+                    {% if name.gender in 'Female,Unisex' %}
+                    <tr>
+                        <th>Girl Rank</th>
+                        <td><h3>{{ name.girl_rank|linebreaks }}</h3></td>
+                    </tr>
+                {% endif %}
             {% endif %}
             {% if name.description %}<tr>
                 <th>Description</th>
@@ -148,7 +166,7 @@
     -->
 
 
-
+{% if famous_people %}
 
 <h2>Famous {{ name.name }}{% if famous_people|length > 0 %}s{% endif %}</h2>
 <table class="table">
@@ -164,11 +182,13 @@
         {% endfor %}
     </tbody>
 </table>
+{% endif %}
 
 
 
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% if baby_name_usage_data|length > 2 %}
 <script>
 // Your data from the backend.
 var data = {{baby_name_usage_data|safe}};
@@ -223,7 +243,8 @@ var time_series_chart = new Chart(ctx, {
   }
 });
 </script>
-
+{% endif %}
+{% if states %}
 <script>
 var data = [{
   type: 'choropleth',
@@ -253,4 +274,5 @@ var layout = {
 
 Plotly.newPlot('chloro', data, layout, {showLink: false});
 </script>
+{% endif %}
 {% endblock %}

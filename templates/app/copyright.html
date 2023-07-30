@@ -1,0 +1,45 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Copyright Notice - BabyNamer.AI</title>
+{% endblock %}
+
+{% block content %}
+
+{% with 'info@babynamer.ai' as email %}
+    <h1>Copyright Information</h1>
+
+    <h2>Ownership of Copyright</h2>
+    <p>The copyright in this website and the material on this website (including without limitation the text, computer code, artwork, photographs, images, music, audio material, video material and audio-visual material on this website) is owned by BabyNamer.AI.</p>
+
+    <h2>Copyright License</h2>
+    <p>BabyNamer.AI grants to you a worldwide non-exclusive royalty-free revocable license to:
+    <ul>
+        <li>View this website and the material on this website on a computer or mobile device via a web browser.</li>
+        <li>Copy and store this website and the material on this website in your web browser cache memory.</li>
+        <li>Print pages from this website for your own personal and non-commercial use.</li>
+    </ul>
+    BabyNamer.AI does not grant you any other rights in relation to this website or the material on this website. In other words, all other rights are reserved. For the avoidance of doubt, you must not adapt, edit, change, transform, publish, republish, distribute, redistribute, broadcast, rebroadcast or show or play in public this website or the material on this website (in any form or media) without BabyNamer.AI’s prior written permission.</p>
+
+    <h2>Data Mining</h2>
+    <p>The automated and/or systematic collection of data from this website is prohibited.</p>
+
+    <h2>Permissions</h2>
+    <p>You may request permission to use the copyright materials on this website by writing to {{email }}.</p>
+
+    <h2>Enforcement of Copyright</h2>
+    <p>BabyNamer.AI takes the protection of its copyright very seriously. If BabyNamer.AI discovers that you have used its copyright materials in contravention of the license above, BabyNamer.AI may bring legal proceedings against you seeking monetary damages and an injunction to stop you using those materials. You could also be ordered to pay legal costs.</p>
+    <p>If you become aware of any use of BabyNamer.AI's copyright materials that contravenes or may contravene the license above, please report this by email to {{email}}.</p>
+
+    <h2>Infringing Material</h2>
+    <p>If you become aware of any material on the website that you believe infringes your or any other person's copyright, please report this by email to {{email }}.</p>
+
+    <hr>
+
+    <p>© BabyNamer.AI {% now "Y" %}  - All rights reserved.</p>
+
+    <p><a href="/">Return to Home</a></p>
+{% endwith %}
+
+{% endblock %}

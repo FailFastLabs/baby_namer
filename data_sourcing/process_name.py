@@ -6,6 +6,7 @@ from langchain.schema import (
 )
 from langchain.chat_models import ChatOpenAI
 from .models import FamousPerson, BabyName
+from app.models import NameRank, NameStatePopularity, BabyName as BabyNameModel
 from .examples import EXAMPLE_BABY_NAMES
 import json
 import wikipediaapi
@@ -17,9 +18,10 @@ from copy import deepcopy
 from .utils import USER_AGENT
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
+import numpy as np
 
-chat = ChatOpenAI(temperature=0, model='gpt-3.5-turbo')
-
+chat = ChatOpenAI(temperature=0, model='gpt-4')
 
 def get_famous_people(name):
     # Set up a parser + inject instructions into the prompt template.
@@ -74,7 +76,7 @@ def get_famous_people(name):
 def extract_content(url, content_class):
     # Send a GET request to the URL
     try:
-        response = requests.get(url,timeout=5)
+        response = requests.get(url,timeout=5, )
     except requests.exceptions.Timeout:
         # In case of a timeout, return an empty string
         return ""
@@ -88,6 +90,7 @@ def extract_content(url, content_class):
     return '\n'.join([element.text for element in elements])
 
 def get_gt_data(name):
+    # sourced from the web
     content = []
     for url, c in [['https://nameberry.com/babyname/{name}','t-copy'],
                        ['https://www.thebump.com/b/{name}-baby-name','contentBody']]:
@@ -97,6 +100,21 @@ def get_gt_data(name):
     page_py = wiki_wiki.page(f'{name} (name)') # TODO include other forms of this
 
     content.append(page_py.text.split('\n\n')[0])
+
+    ## sourced from our databases
+    queryset = NameRank.objects.filter(name=name)
+    df = pd.DataFrame(list(queryset.values()))
+    df['decade'] = df.year.apply(lambda x: np.floor(x / 10) * 10)
+    df = df.groupby(['decade']).agg({'count': 'sum', 'rank': 'mean'})
+    usage_json = json.dumps(df.to_dict())
+    content.append(usage_json)
+
+    df = pd.DataFrame(list(NameStatePopularity.objects.filter(name=name).values()))
+    state_json = json.dumps(df.sort_values(['relative_popularity'], ascending=False).head(10).to_dict())
+    content.append(state_json)
+
+    obj = BabyNameModel.objects.get(name=name)
+    content.append(f'Most Recent Boy Rank: {obj.boy_rank} Most Recent Girl Rank: {obj.girl_rank}')
     return '\n'.join([c[0:500] for c in content])
 
 def get_name_description(name):

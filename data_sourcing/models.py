@@ -44,6 +44,7 @@ class FamousPerson(BaseModel):
     description: Optional[str] = Field(None, description="A short description of the famous person")
     wikipedia_link: HttpUrl = Field(..., description="The link to the famous person's Wikipedia page")
 
+
     @validator('wikipedia_link')
     def name_must_not_be_empty(cls, field):
         if not field:
@@ -87,9 +88,9 @@ class BabyName(BaseModel):
                                                description="The religion commonly associated with this name. Acceptable values are: " + ", ".join(
                                                    [r.value for r in Religion]),
                                                bulk=True)
-    language: Optional[str] = Field(None, description="Language of Origin for this name",
+    language: Optional[List[str]] = Field(None, description="Language of Origin for this name",
                                     bulk=True)
-    region: Optional[str] = Field(None, description="Country/State/ Location where the name is common",
+    region: Optional[List[str]] = Field(None, description="Country/State/ Location where the name is common",
                                   bulk=True)
 
     @validator('name')

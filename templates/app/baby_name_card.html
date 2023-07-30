@@ -1,4 +1,4 @@
-<div class="card" style="width: 18rem;">
+<div class="card" style="width: 18rem; height: 10rem">
     <div class="card-body">
         <h5 class="card-title">
             {{name.rank}}:
@@ -11,8 +11,22 @@
                 {% endif %}
             </span>
         </h5>
+        {% for tag in name.tags %}
+        {% if tag.value != 'nan' %}
+            <span class="badge badge-pill badge-primary">
+                {% if tag.value == True %}
+                    {{ tag.key|title }}
+                {% else %}
+                    {{ tag.value|title }}
+                {% endif %}</span>
+        {% endif %}
+        {% endfor %}
         <p class="card-text">
-          {{ name.description|truncatechars:75 }}
+            {% if name.description|length > 5 %}
+                {{ name.description|truncatechars:60 }}
+            {% else %}
+                Currently processing {{name.name}}, check back later.
+            {% endif %}
         </p>
     </div>
   </div>

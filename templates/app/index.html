@@ -5,11 +5,10 @@
     <title>Top Baby Names - BabyNamer.AI</title>
 {% endblock %}
 
-
 {% block content %}
   <table>
   <tbody>
-      {% for name_row in page_obj %}
+      {% for name_row in names %}
         <tr>
             {% for name in name_row %}
             <td>

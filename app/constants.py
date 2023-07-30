@@ -1,4 +1,3 @@
-BATCH_SIZE = 1000
 
 US_STATE_ABBREV = {
     "Alabama": "AL",
@@ -60,7 +59,7 @@ US_STATE_ABBREV = {
     "U.S. Virgin Islands": "VI",
 }
 
-state_to_region = {
+STATES_TO_REGION = {
     "AL": "South",
     "AK": "West",
     "AZ": "Southwest",

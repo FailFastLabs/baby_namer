@@ -91,6 +91,11 @@ class BabyName(models.Model):
                 elif name == 'religion':
                     return Religion(value)
         return super().__getattr__(name)
+    def get_tags(self):
+        tags = BabyTags.objects.filter(baby_name=self)
+        return tags
+    def get_famous_people(self):
+        return FamousPerson.objects.filter(baby_name=self)
 
 class FamousPerson(models.Model):
     name = models.CharField(max_length=255)
@@ -100,6 +105,7 @@ class FamousPerson(models.Model):
     )
     description = models.TextField(null=True, blank=True)
     wikipedia_link = models.URLField(validators=[URLValidator()], primary_key=True)
+    popularity_score = models.FloatField(null=True, blank=True)
 
 
 class NameRank(models.Model):
@@ -146,4 +152,4 @@ class BabyTags(models.Model):
     key = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
     class Meta:
-        unique_together = ('baby_name', 'key', 'value', )
+        unique_together = ('baby_name', 'key', 'value')

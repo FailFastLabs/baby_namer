@@ -21,7 +21,7 @@ baby_name_john = BabyName(
     name_variants=["Jon", "Jhon", "Johnathan"],
     ethnicity=[Ethnicity.CAUCASIAN],
     religion=[Religion.CHRISTIANITY],
-    region='Western'
+    region=['Western']
 
 )
 
@@ -36,8 +36,8 @@ baby_name_mary = BabyName(
     name_variants=["Marie", "Maria"],
     ethnicity=[Ethnicity.CAUCASIAN],
     religion=[Religion.CHRISTIANITY],
-    language='Hebrew',
-    region='Europe'
+    language=['Hebrew'],
+    region=['Europe']
 )
 
 baby_name_mohamed = BabyName(
@@ -50,8 +50,8 @@ baby_name_mohamed = BabyName(
     name_variants=["Muhammed", "Muhamad", "Mohammad", "Mohammed", "Mohamad", "Mohamed"],
     ethnicity=[Ethnicity.MIDDLE_EASTERN],
     religion=[Religion.ISLAM],
-    language='Arabic',
-    region='Middle East'
+    language=['Arabic'],
+    region=['Middle East']
 )
 
 baby_name_jing = BabyName(
@@ -60,8 +60,8 @@ baby_name_jing = BabyName(
     description="Chinese given female name meaning calm",
     ethnicity=[Ethnicity.ASIAN],
     religion=[Religion.SECULAR],
-    language='Chinese',
-    region='China'
+    language=['Chinese'],
+    region=['China']
 )
 baby_name_maya = BabyName(
     name="Maya",
@@ -69,8 +69,8 @@ baby_name_maya = BabyName(
     description="Female name with various origins in Greek, Hebrew, and Sanskrit",
     ethnicity=[Ethnicity.ASIAN, Ethnicity.MIDDLE_EASTERN, Ethnicity.CAUCASIAN],
     religion=[Religion.BUDDHISM, Religion.JAINISM],
-    language='Greek, Hebrew, and Sanskrit',
-    region='Various'
+    language=['Greek', 'Hebrew', 'Sanskrit'],
+    region=['Various']
 )
 
 EXAMPLE_BABY_NAMES = [baby_name_jing, baby_name_mary,baby_name_mohamed, baby_name_maya]

@@ -21,6 +21,7 @@
 <body>
 
 
+
 {% block nav %}
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <a class="navbar-brand" href="#">BabyNamer.AI</a>
@@ -29,14 +30,14 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'app:index' %}">Top Names</a>
+      <li class="nav-item {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+        <a class="{% if request.resolver_match.url_name == 'index' %}nav-link disabled{% else %}nav-link{% endif %}" href="{% url 'app:index' %}">Top Names</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'app:girls' %}">Hot Girl Names</a>
+      <li class="nav-item {% if request.resolver_match.url_name == 'girls' %}active{% endif %}">
+        <a class="{% if request.resolver_match.url_name == 'girls' %}nav-link disabled{% else %}nav-link{% endif %}" href="{% url 'app:girls' %}">Hot Girl Names</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'app:boys' %}">Hot Boy Names</a>
+      <li class="nav-item {% if request.resolver_match.url_name == 'boys' %}active{% endif %}">
+        <a class="{% if request.resolver_match.url_name == 'boys' %}nav-link disabled{% else %}nav-link{% endif %}" href="{% url 'app:boys' %}">Hot Boy Names</a>
       </li>
       <li class="nav-item dropdown" id="userActionsDropdown">
         {% if request.user.is_authenticated %}
@@ -158,6 +159,11 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<!-- Bottom Ribbon -->
+<div class="footer">
+  <p>© BabyNamer.AI {% now "Y" %} - All rights reserved. <a href="{% url 'app:copyright' %}">Copyright Notice</a></p>
+</div>
 
 </body>
 </html>
